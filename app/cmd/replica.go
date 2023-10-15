@@ -63,6 +63,11 @@ func ReplicaCmd() cli.Command {
 				Value: "tcp",
 				Usage: "Specify the data-server protocol. Available options are \"tcp\" and \"unix\"",
 			},
+			cli.StringFlag{
+				Name:  "frontend",
+				Value: "default",
+				Usage: "Specify the frontend. Available options are \"nbd\" and \"default\"",
+			},
 			cli.BoolFlag{
 				Name:   "unmap-mark-disk-chain-removed",
 				Hidden: false,
@@ -115,6 +120,7 @@ func startReplica(c *cli.Context) error {
 	volumeName := c.GlobalString("volume-name")
 	replicaInstanceName := c.String("replica-instance-name")
 	dataServerProtocol := c.String("data-server-protocol")
+	frontend := c.String("frontend")
 
 	controlAddress, dataAddress, syncAddress, syncPort, err :=
 		util.GetAddresses(volumeName, address, types.DataServerProtocol(dataServerProtocol))
@@ -141,7 +147,7 @@ func startReplica(c *cli.Context) error {
 	}()
 
 	go func() {
-		rpcServer := replicarpc.NewDataServer(types.DataServerProtocol(dataServerProtocol), dataAddress, s)
+		rpcServer := replicarpc.NewDataServer(types.DataServerProtocol(dataServerProtocol), dataAddress, s, frontend)
 		logrus.Infof("Listening on data server %s", dataAddress)
 		err := rpcServer.ListenAndServe()
 		logrus.WithError(err).Warnf("Replica rest server at %v is down", dataAddress)

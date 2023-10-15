@@ -15,25 +15,33 @@ type DataServer struct {
 	protocol types.DataServerProtocol
 	address  string
 	s        *replica.Server
+	frontend string
 }
 
-func NewDataServer(protocol types.DataServerProtocol, address string, s *replica.Server) *DataServer {
+func NewDataServer(protocol types.DataServerProtocol, address string, s *replica.Server, frontend string) *DataServer {
 	return &DataServer{
 		protocol: protocol,
 		address:  address,
 		s:        s,
+		frontend: frontend,
 	}
 }
 
 func (s *DataServer) ListenAndServe() error {
-	switch s.protocol {
-	case types.DataServerProtocolTCP:
-		return s.listenAndServeTCP()
-	case types.DataServerProtocolUNIX:
-		return s.listenAndServeUNIX()
+	switch s.frontend {
+	case "nbd":
+		return s.listenAndServeNBD()
 	default:
-		return fmt.Errorf("unsupported protocol: %v", s.protocol)
+		switch s.protocol {
+		case types.DataServerProtocolTCP:
+			return s.listenAndServeTCP()
+		case types.DataServerProtocolUNIX:
+			return s.listenAndServeUNIX()
+		default:
+			return fmt.Errorf("unsupported protocol: %v", s.protocol)
+		}
 	}
+
 }
 
 func (s *DataServer) listenAndServeTCP() error {
@@ -81,6 +89,33 @@ func (s *DataServer) listenAndServeUNIX() error {
 			continue
 		}
 		logrus.Infof("New connection from: %v", conn.RemoteAddr())
+		go func(conn net.Conn) {
+			server := dataconn.NewServer(conn, s.s)
+			server.Handle()
+		}(conn)
+	}
+}
+
+func (s *DataServer) listenAndServeNBD() error {
+	addr, err := net.ResolveTCPAddr("tcp", s.address)
+	if err != nil {
+		return err
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return err
+	}
+
+	for {
+		conn, err := l.AcceptTCP()
+		if err != nil {
+			logrus.WithError(err).Error("failed to accept tcp connection")
+			continue
+		}
+
+		logrus.Infof("New connection from: %v", conn.RemoteAddr())
+
 		go func(conn net.Conn) {
 			server := dataconn.NewServer(conn, s.s)
 			server.Handle()
