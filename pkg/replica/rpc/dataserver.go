@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"flag"
 	"fmt"
 	"net"
 
@@ -9,6 +10,8 @@ import (
 	"github.com/longhorn/longhorn-engine/pkg/dataconn"
 	"github.com/longhorn/longhorn-engine/pkg/replica"
 	"github.com/longhorn/longhorn-engine/pkg/types"
+
+	"github.com/pojntfx/go-nbd/pkg/server"
 )
 
 type DataServer struct {
@@ -28,20 +31,14 @@ func NewDataServer(protocol types.DataServerProtocol, address string, s *replica
 }
 
 func (s *DataServer) ListenAndServe() error {
-	switch s.frontend {
-	case "nbd":
-		return s.listenAndServeNBD()
+	switch s.protocol {
+	case types.DataServerProtocolTCP:
+		return s.listenAndServeTCP()
+	case types.DataServerProtocolUNIX:
+		return s.listenAndServeUNIX()
 	default:
-		switch s.protocol {
-		case types.DataServerProtocolTCP:
-			return s.listenAndServeTCP()
-		case types.DataServerProtocolUNIX:
-			return s.listenAndServeUNIX()
-		default:
-			return fmt.Errorf("unsupported protocol: %v", s.protocol)
-		}
+		return fmt.Errorf("unsupported protocol: %v", s.protocol)
 	}
-
 }
 
 func (s *DataServer) listenAndServeTCP() error {
@@ -64,10 +61,39 @@ func (s *DataServer) listenAndServeTCP() error {
 
 		logrus.Infof("New connection from: %v", conn.RemoteAddr())
 
-		go func(conn net.Conn) {
-			server := dataconn.NewServer(conn, s.s)
-			server.Handle()
-		}(conn)
+		switch s.frontend {
+		case "default":
+			go func(conn net.Conn) {
+				server := dataconn.NewServer(conn, s.s)
+				server.Handle()
+			}(conn)
+		case "nbd":
+			go func() {
+				b := NewNBDFileBackend(s.s)
+				name := flag.String("name", "default", "Export name")
+				description := flag.String("description", "The default export", "Export description")
+				readOnly := s.s.GetReadOnly()
+				blockSize := s.s.Replica().Info().SectorSize
+				if err := server.Handle(
+					conn,
+					[]*server.Export{
+						{
+							Name:        *name,
+							Description: *description,
+							Backend:     b,
+						},
+					},
+					&server.Options{
+						ReadOnly:           readOnly,
+						MinimumBlockSize:   uint32(blockSize),
+						PreferredBlockSize: uint32(blockSize),
+						MaximumBlockSize:   uint32(blockSize),
+						SupportsMultiConn:  true,
+					}); err != nil {
+					panic(err)
+				}
+			}()
+		}
 	}
 }
 
@@ -89,36 +115,66 @@ func (s *DataServer) listenAndServeUNIX() error {
 			continue
 		}
 		logrus.Infof("New connection from: %v", conn.RemoteAddr())
-		go func(conn net.Conn) {
-			server := dataconn.NewServer(conn, s.s)
-			server.Handle()
-		}(conn)
+
+		switch s.frontend {
+		case "default":
+			go func(conn net.Conn) {
+				server := dataconn.NewServer(conn, s.s)
+				server.Handle()
+			}(conn)
+		case "nbd":
+			go func(conn net.Conn) {
+				b := NewNBDFileBackend(s.s)
+				name := flag.String("name", "default", "Export name")
+				description := flag.String("description", "The default export", "Export description")
+				readOnly := s.s.GetReadOnly()
+				blockSize := s.s.Replica().Info().SectorSize
+				if err := server.Handle(
+					conn,
+					[]*server.Export{
+						{
+							Name:        *name,
+							Description: *description,
+							Backend:     b,
+						},
+					},
+					&server.Options{
+						ReadOnly:           readOnly,
+						MinimumBlockSize:   uint32(blockSize),
+						PreferredBlockSize: uint32(blockSize),
+						MaximumBlockSize:   uint32(blockSize),
+						SupportsMultiConn:  true,
+					}); err != nil {
+					panic(err)
+				}
+			}(conn)
+		}
 	}
 }
 
-func (s *DataServer) listenAndServeNBD() error {
-	addr, err := net.ResolveTCPAddr("tcp", s.address)
-	if err != nil {
-		return err
-	}
+type nbdFileBackend struct {
+	s *replica.Server
+}
 
-	l, err := net.ListenTCP("tcp", addr)
-	if err != nil {
-		return err
-	}
+func NewNBDFileBackend(s *replica.Server) *nbdFileBackend {
+	return &nbdFileBackend{s}
+}
 
-	for {
-		conn, err := l.AcceptTCP()
-		if err != nil {
-			logrus.WithError(err).Error("failed to accept tcp connection")
-			continue
-		}
+func (b *nbdFileBackend) ReadAt(p []byte, off int64) (n int, err error) {
+	n, err = b.s.ReadAt(p, off)
+	return
+}
 
-		logrus.Infof("New connection from: %v", conn.RemoteAddr())
+func (b *nbdFileBackend) WriteAt(p []byte, off int64) (n int, err error) {
+	n, err = b.s.WriteAt(p, off)
+	return
+}
 
-		go func(conn net.Conn) {
-			server := dataconn.NewServer(conn, s.s)
-			server.Handle()
-		}(conn)
-	}
+func (b *nbdFileBackend) Size() (int64, error) {
+	_, info := b.s.Status()
+	return info.Size, nil
+}
+
+func (b *nbdFileBackend) Sync() error {
+	return nil
 }

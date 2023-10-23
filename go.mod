@@ -14,6 +14,7 @@ require (
 	github.com/longhorn/sparse-tools v0.0.0-20230408015858-c849def39d3c
 	github.com/moby/moby v23.0.2+incompatible
 	github.com/pkg/errors v0.9.1
+	github.com/pojntfx/go-nbd v0.3.2
 	github.com/rancher/go-fibmap v0.0.0-20160418233256-5fc9f8c1ed47
 	github.com/rancher/go-rancher v0.1.1-0.20190307222549-9756097e5e4c
 	github.com/sirupsen/logrus v1.9.0
@@ -50,8 +51,6 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/moby/sys/mountinfo v0.6.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
-	github.com/pilebones/go-udev v0.9.0 // indirect
-	github.com/pojntfx/go-nbd v0.3.2 // indirect
 	github.com/prometheus/client_golang v1.15.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect

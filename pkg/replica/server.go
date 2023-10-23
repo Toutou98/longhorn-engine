@@ -152,6 +152,10 @@ func (s *Server) Replica() *Replica {
 	return s.r
 }
 
+func (s *Server) GetReadOnly() bool {
+	return s.r.readOnly
+}
+
 func (s *Server) Revert(name, created string) error {
 	s.Lock()
 	defer s.Unlock()
