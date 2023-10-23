@@ -3,6 +3,8 @@ package remote
 import (
 	"fmt"
 	"net"
+	"os"
+	"os/signal"
 	"strconv"
 	"time"
 
@@ -360,9 +362,35 @@ func (rf *Factory) Create(volumeName, address string, dataServerProtocol types.D
 	if err != nil {
 		return nil, err
 	}
+	f, err := os.Open("/dev/nbd0")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
 
-	dataConnClient := dataconn.NewClient(conn, engineToReplicaTimeout)
-	r.ReaderWriterUnmapperAt = dataConnClient
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt)
+
+	go func() {
+		for range sigCh {
+			if err := nbdClient.Disconnect(f); err != nil {
+				panic(err)
+			}
+
+			os.Exit(0)
+		}
+	}()
+
+	if err := nbdClient.Connect(conn, f, &nbdClient.Options{
+		ExportName: "default",
+		BlockSize:  uint32(0), // Blocksize 0 gets the server prefered blocksize
+	}); err != nil {
+		panic(err)
+	}
+	r.ReaderWriterUnmapperAt = nbdClient
+
+	//dataConnClient := dataconn.NewClient(conn, engineToReplicaTimeout)
+	//r.ReaderWriterUnmapperAt = dataConnClient
 
 	if err := r.open(); err != nil {
 		return nil, err

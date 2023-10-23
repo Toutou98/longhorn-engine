@@ -178,3 +178,14 @@ func (b *nbdFileBackend) Size() (int64, error) {
 func (b *nbdFileBackend) Sync() error {
 	return nil
 }
+
+func (b *nbdFileBackend) Ping() error {
+	state, info := b.s.Status()
+	if state == types.ReplicaStateError {
+		return fmt.Errorf("ping failure due to %v", info.Error)
+	}
+	if state != types.ReplicaStateOpen && state != types.ReplicaStateDirty && state != types.ReplicaStateRebuilding {
+		return fmt.Errorf("ping failure: replica state %v", state)
+	}
+	return nil
+}
