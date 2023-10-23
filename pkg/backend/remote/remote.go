@@ -14,11 +14,11 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	"github.com/longhorn/longhorn-engine/pkg/dataconn"
 	replicaClient "github.com/longhorn/longhorn-engine/pkg/replica/client"
 	"github.com/longhorn/longhorn-engine/pkg/types"
 	"github.com/longhorn/longhorn-engine/pkg/util"
 	"github.com/longhorn/longhorn-engine/proto/ptypes"
+	nbdClient "github.com/pojntfx/go-nbd/pkg/client"
 )
 
 const (
@@ -387,18 +387,38 @@ func (rf *Factory) Create(volumeName, address string, dataServerProtocol types.D
 	}); err != nil {
 		panic(err)
 	}
-	r.ReaderWriterUnmapperAt = nbdClient
+	r.ReaderWriterUnmapperAt = NewNBDClient()
 
-	//dataConnClient := dataconn.NewClient(conn, engineToReplicaTimeout)
-	//r.ReaderWriterUnmapperAt = dataConnClient
+	// dataConnClient := dataconn.NewClient(conn, engineToReplicaTimeout)
+	// r.ReaderWriterUnmapperAt = dataConnClient
 
 	if err := r.open(); err != nil {
 		return nil, err
 	}
 
-	go r.monitorPing(dataConnClient)
+	// go r.monitorPing(dataConnClient)
 
 	return r, nil
+}
+
+type NBDClientBackend struct {
+	types.ReaderWriterUnmapperAt
+}
+
+func NewNBDClient() *NBDClientBackend {
+	return &NBDClientBackend{}
+}
+
+func (cb *NBDClientBackend) WriteAt(buf []byte, offset int64) (int, error) {
+	return 0, nil
+}
+
+func (cb *NBDClientBackend) UnmapAt(length uint32, offset int64) (int, error) {
+	return 0, nil
+}
+
+func (cb *NBDClientBackend) ReadAt(buf []byte, offset int64) (int, error) {
+	return 0, nil
 }
 
 func connect(dataServerProtocol types.DataServerProtocol, address string) (net.Conn, error) {
@@ -416,6 +436,7 @@ func connect(dataServerProtocol types.DataServerProtocol, address string) (net.C
 	}
 }
 
+/*
 func (r *Remote) monitorPing(client *dataconn.Client) {
 	ticker := time.NewTicker(PingInterval)
 	defer ticker.Stop()
@@ -433,7 +454,7 @@ func (r *Remote) monitorPing(client *dataconn.Client) {
 			}
 		}
 	}
-}
+}*/
 
 func (r *Remote) GetMonitorChannel() types.MonitorChannel {
 	return r.monitorChan

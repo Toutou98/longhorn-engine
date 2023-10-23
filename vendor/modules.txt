@@ -193,6 +193,7 @@ github.com/pkg/errors
 # github.com/pojntfx/go-nbd v0.3.2
 ## explicit; go 1.20
 github.com/pojntfx/go-nbd/pkg/backend
+github.com/pojntfx/go-nbd/pkg/client
 github.com/pojntfx/go-nbd/pkg/ioctl
 github.com/pojntfx/go-nbd/pkg/protocol
 github.com/pojntfx/go-nbd/pkg/server
