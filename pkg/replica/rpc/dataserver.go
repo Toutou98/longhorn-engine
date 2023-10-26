@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 
@@ -69,6 +70,20 @@ func (s *DataServer) listenAndServeTCP() error {
 			}(conn)
 		case "nbd":
 			go func() {
+				var wg sync.WaitGroup
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					for {
+						replicaFlag := s.s.Replica()
+						if replicaFlag != nil {
+							break
+						}
+					}
+
+				}()
+				wg.Wait()
+
 				b := NewNBDFileBackend(s.s)
 				name := flag.String("name", "default", "Export name")
 				description := flag.String("description", "The default export", "Export description")
