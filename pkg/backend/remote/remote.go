@@ -3,8 +3,6 @@ package remote
 import (
 	"fmt"
 	"net"
-	"os"
-	"os/signal"
 	"strconv"
 	"time"
 
@@ -14,11 +12,11 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
+	"github.com/longhorn/longhorn-engine/pkg/dataconn"
 	replicaClient "github.com/longhorn/longhorn-engine/pkg/replica/client"
 	"github.com/longhorn/longhorn-engine/pkg/types"
 	"github.com/longhorn/longhorn-engine/pkg/util"
 	"github.com/longhorn/longhorn-engine/proto/ptypes"
-	nbdClient "github.com/pojntfx/go-nbd/pkg/client"
 )
 
 const (
@@ -362,70 +360,30 @@ func (rf *Factory) Create(volumeName, address string, dataServerProtocol types.D
 	if err != nil {
 		return nil, err
 	}
-	f, err := os.Open("/dev/nbd0")
-	if err != nil {
-		panic(err)
+	switch dataServerProtocol {
+	case types.DataServerProtocolTCP, types.DataServerProtocolUNIX:
+		dataConnClient := dataconn.NewClient(conn, engineToReplicaTimeout)
+		r.ReaderWriterUnmapperAt = dataConnClient
+	case types.DataServerProtocolTCPNBD, types.DataServerProtocolUNIXNBD:
+		dataConnClient := dataconn.NewNBDClient(conn, engineToReplicaTimeout)
+		r.ReaderWriterUnmapperAt = dataConnClient
+	default:
+		return nil, fmt.Errorf("unsupported protocol: %v", dataServerProtocol)
 	}
-	defer f.Close()
-
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt)
-
-	go func() {
-		for range sigCh {
-			if err := nbdClient.Disconnect(f); err != nil {
-				panic(err)
-			}
-
-			os.Exit(0)
-		}
-	}()
-
-	if err := nbdClient.Connect(conn, f, &nbdClient.Options{
-		ExportName: "default",
-		BlockSize:  uint32(0), // Blocksize 0 gets the server prefered blocksize
-	}); err != nil {
-		panic(err)
-	}
-	r.ReaderWriterUnmapperAt = NewNBDClient()
-
-	// dataConnClient := dataconn.NewClient(conn, engineToReplicaTimeout)
-	// r.ReaderWriterUnmapperAt = dataConnClient
 
 	if err := r.open(); err != nil {
 		return nil, err
 	}
-
-	// go r.monitorPing(dataConnClient)
+	//go r.monitorPing(dataConnClient)
 
 	return r, nil
 }
 
-type NBDClientBackend struct {
-	types.ReaderWriterUnmapperAt
-}
-
-func NewNBDClient() *NBDClientBackend {
-	return &NBDClientBackend{}
-}
-
-func (cb *NBDClientBackend) WriteAt(buf []byte, offset int64) (int, error) {
-	return 0, nil
-}
-
-func (cb *NBDClientBackend) UnmapAt(length uint32, offset int64) (int, error) {
-	return 0, nil
-}
-
-func (cb *NBDClientBackend) ReadAt(buf []byte, offset int64) (int, error) {
-	return 0, nil
-}
-
 func connect(dataServerProtocol types.DataServerProtocol, address string) (net.Conn, error) {
 	switch dataServerProtocol {
-	case types.DataServerProtocolTCP:
+	case types.DataServerProtocolTCP, types.DataServerProtocolTCPNBD:
 		return net.Dial(string(dataServerProtocol), address)
-	case types.DataServerProtocolUNIX:
+	case types.DataServerProtocolUNIX, types.DataServerProtocolUNIXNBD:
 		unixAddr, err := net.ResolveUnixAddr("unix", address)
 		if err != nil {
 			return nil, err
@@ -436,7 +394,6 @@ func connect(dataServerProtocol types.DataServerProtocol, address string) (net.C
 	}
 }
 
-/*
 func (r *Remote) monitorPing(client *dataconn.Client) {
 	ticker := time.NewTicker(PingInterval)
 	defer ticker.Stop()
@@ -454,7 +411,7 @@ func (r *Remote) monitorPing(client *dataconn.Client) {
 			}
 		}
 	}
-}*/
+}
 
 func (r *Remote) GetMonitorChannel() types.MonitorChannel {
 	return r.monitorChan

@@ -51,7 +51,6 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/moby/sys/mountinfo v0.6.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
-	github.com/pilebones/go-udev v0.9.0 // indirect
 	github.com/prometheus/client_golang v1.15.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
@@ -70,4 +69,5 @@ require (
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/mount-utils v0.27.1 // indirect
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2 // indirect
+	libguestfs.org/libnbd v1.18.0
 )

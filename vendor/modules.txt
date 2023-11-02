@@ -186,15 +186,12 @@ github.com/pierrec/lz4/v4/internal/lz4stream
 github.com/pierrec/lz4/v4/internal/xxh32
 # github.com/pilebones/go-udev v0.9.0
 ## explicit; go 1.15
-github.com/pilebones/go-udev/netlink
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
 # github.com/pojntfx/go-nbd v0.3.2
 ## explicit; go 1.20
 github.com/pojntfx/go-nbd/pkg/backend
-github.com/pojntfx/go-nbd/pkg/client
-github.com/pojntfx/go-nbd/pkg/ioctl
 github.com/pojntfx/go-nbd/pkg/protocol
 github.com/pojntfx/go-nbd/pkg/server
 # github.com/prometheus/client_golang v1.15.0
@@ -388,3 +385,6 @@ k8s.io/utils/clock
 k8s.io/utils/exec
 k8s.io/utils/io
 k8s.io/utils/keymutex
+# libguestfs.org/libnbd v1.18.0
+## explicit; go 1.17
+libguestfs.org/libnbd

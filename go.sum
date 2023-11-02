@@ -90,8 +90,6 @@ github.com/moby/sys/mountinfo v0.6.2/go.mod h1:IJb6JQeOklcdMU9F5xQ8ZALD+CUr5VlGp
 github.com/modocache/gover v0.0.0-20171022184752-b58185e213c5/go.mod h1:caMODM3PzxT8aQXRPkAt8xlV/e7d7w8GM5g0fa5F0D8=
 github.com/pierrec/lz4/v4 v4.1.17 h1:kV4Ip+/hUBC+8T6+2EgburRtkE9ef4nbY3f4dFhGjMc=
 github.com/pierrec/lz4/v4 v4.1.17/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
-github.com/pilebones/go-udev v0.9.0 h1:N1uEO/SxUwtIctc0WLU0t69JeBxIYEYnj8lT/Nabl9Q=
-github.com/pilebones/go-udev v0.9.0/go.mod h1:T2eI2tUSK0hA2WS5QLjXJUfQkluZQu+18Cqvem3CaXI=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
@@ -215,3 +213,5 @@ k8s.io/mount-utils v0.27.1 h1:RSd0wslbIuwLRaGGNAGMZ3m9FLcvukxJ3FWlOm76W2A=
 k8s.io/mount-utils v0.27.1/go.mod h1:vmcjYdi2Vg1VTWY7KkhvwJVY6WDHxb/QQhiQKkR8iNs=
 k8s.io/utils v0.0.0-20230406110748-d93618cff8a2 h1:qY1Ad8PODbnymg2pRbkyMT/ylpTrCM8P2RJ0yroCyIk=
 k8s.io/utils v0.0.0-20230406110748-d93618cff8a2/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
+libguestfs.org/libnbd v1.18.0 h1:9YzeT5A5A/ArFAPoe37ngFPu9iSlNgcAmk2NLyIuZwA=
+libguestfs.org/libnbd v1.18.0/go.mod h1:pSICAuDOpSGplmGmaZ8QettnBAT3IUJFcBU1bVgWgk4=

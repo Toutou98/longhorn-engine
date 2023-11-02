@@ -49,8 +49,10 @@ const (
 type DataServerProtocol string
 
 const (
-	DataServerProtocolTCP  = DataServerProtocol("tcp")
-	DataServerProtocolUNIX = DataServerProtocol("unix")
+	DataServerProtocolTCP     = DataServerProtocol("tcp")
+	DataServerProtocolUNIX    = DataServerProtocol("unix")
+	DataServerProtocolTCPNBD  = DataServerProtocol("tcpnbd")
+	DataServerProtocolUNIXNBD = DataServerProtocol("unixnbd")
 )
 
 type ReplicaState string
