@@ -184,8 +184,6 @@ github.com/pierrec/lz4/v4/internal/lz4block
 github.com/pierrec/lz4/v4/internal/lz4errors
 github.com/pierrec/lz4/v4/internal/lz4stream
 github.com/pierrec/lz4/v4/internal/xxh32
-# github.com/pilebones/go-udev v0.9.0
-## explicit; go 1.15
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
@@ -385,6 +383,6 @@ k8s.io/utils/clock
 k8s.io/utils/exec
 k8s.io/utils/io
 k8s.io/utils/keymutex
-# libguestfs.org/libnbd v1.18.0
-## explicit; go 1.17
+# libguestfs.org/libnbd v1.13.1
+## explicit; go 1.13
 libguestfs.org/libnbd

@@ -1,5 +1,5 @@
 /* libnbd golang AIO buffer.
- * Copyright Red Hat
+ * Copyright (C) 2013-2021 Red Hat Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -85,7 +85,9 @@ func (b *AioBuffer) Slice() []byte {
 	if b.P == nil {
 		panic("Using AioBuffer after Free()")
 	}
-	return unsafe.Slice((*byte)(b.P), b.Size)
+	// See https://github.com/golang/go/wiki/cgo#turning-c-arrays-into-go-slices
+	// TODO: Use unsafe.Slice() when we require Go 1.17.
+	return (*[1 << 30]byte)(b.P)[:b.Size:b.Size]
 }
 
 // Get returns a pointer to a byte in the underlying C array. The pointer can

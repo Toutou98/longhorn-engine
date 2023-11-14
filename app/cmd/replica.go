@@ -61,12 +61,7 @@ func ReplicaCmd() cli.Command {
 			cli.StringFlag{
 				Name:  "data-server-protocol",
 				Value: "tcp",
-				Usage: "Specify the data-server protocol. Available options are \"tcp\", \"unix\", \"tcpnbd\", \"unixnbd\"",
-			},
-			cli.StringFlag{
-				Name:  "frontend",
-				Value: "default",
-				Usage: "Specify the frontend. Available options are \"nbd\" and \"default\"",
+				Usage: "Specify the data-server protocol. Available options are \"tcp\" and \"unix\"",
 			},
 			cli.BoolFlag{
 				Name:   "unmap-mark-disk-chain-removed",
@@ -77,6 +72,11 @@ func ReplicaCmd() cli.Command {
 				Name:  "replica-instance-name",
 				Value: "",
 				Usage: "Name of the replica instance (for validation purposes)",
+			},
+			cli.BoolFlag{
+				Name:   "nbd-enabled",
+				Hidden: false,
+				Usage:  "Flag to enable NBD data server",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -120,7 +120,7 @@ func startReplica(c *cli.Context) error {
 	volumeName := c.GlobalString("volume-name")
 	replicaInstanceName := c.String("replica-instance-name")
 	dataServerProtocol := c.String("data-server-protocol")
-	frontend := c.String("frontend")
+	nbdEnabled := c.Bool("nbd-enabled")
 
 	controlAddress, dataAddress, syncAddress, syncPort, err :=
 		util.GetAddresses(volumeName, address, types.DataServerProtocol(dataServerProtocol))
@@ -147,7 +147,7 @@ func startReplica(c *cli.Context) error {
 	}()
 
 	go func() {
-		rpcServer := replicarpc.NewDataServer(types.DataServerProtocol(dataServerProtocol), dataAddress, s, frontend)
+		rpcServer := replicarpc.NewDataServer(types.DataServerProtocol(dataServerProtocol), dataAddress, s, nbdEnabled)
 		logrus.Infof("Listening on data server %s", dataAddress)
 		err := rpcServer.ListenAndServe()
 		logrus.WithError(err).Warnf("Replica rest server at %v is down", dataAddress)

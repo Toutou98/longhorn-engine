@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  *
  * Copyright (c) 2013 Alex Zorin
- * Copyright Red Hat
+ * Copyright (C) 2016 Red Hat, Inc.
  *
  */
 

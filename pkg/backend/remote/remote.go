@@ -329,7 +329,7 @@ func (r *Remote) info() (*types.ReplicaInfo, error) {
 	return replicaClient.GetReplicaInfo(resp.Replica), nil
 }
 
-func (rf *Factory) Create(volumeName, address string, dataServerProtocol types.DataServerProtocol, engineToReplicaTimeout time.Duration) (types.Backend, error) {
+func (rf *Factory) Create(volumeName, address string, dataServerProtocol types.DataServerProtocol, engineToReplicaTimeout time.Duration, nbdEnabled bool) (types.Backend, error) {
 	logrus.Infof("Connecting to remote: %s (%v)", address, dataServerProtocol)
 
 	controlAddress, dataAddress, _, _, err := util.GetAddresses(volumeName, address, dataServerProtocol)
@@ -360,20 +360,19 @@ func (rf *Factory) Create(volumeName, address string, dataServerProtocol types.D
 	if err != nil {
 		return nil, err
 	}
-	switch dataServerProtocol {
-	case types.DataServerProtocolTCP, types.DataServerProtocolUNIX:
+	//var dataConnClient *dataconn.Client
+	if nbdEnabled {
+		dataConnClientNBD := dataconn.NewNBDClient(conn, engineToReplicaTimeout)
+		r.ReaderWriterUnmapperAt = dataConnClientNBD
+	} else {
 		dataConnClient := dataconn.NewClient(conn, engineToReplicaTimeout)
 		r.ReaderWriterUnmapperAt = dataConnClient
-	case types.DataServerProtocolTCPNBD, types.DataServerProtocolUNIXNBD:
-		dataConnClient := dataconn.NewNBDClient(conn, engineToReplicaTimeout)
-		r.ReaderWriterUnmapperAt = dataConnClient
-	default:
-		return nil, fmt.Errorf("unsupported protocol: %v", dataServerProtocol)
 	}
 
 	if err := r.open(); err != nil {
 		return nil, err
 	}
+
 	//go r.monitorPing(dataConnClient)
 
 	return r, nil
@@ -381,9 +380,9 @@ func (rf *Factory) Create(volumeName, address string, dataServerProtocol types.D
 
 func connect(dataServerProtocol types.DataServerProtocol, address string) (net.Conn, error) {
 	switch dataServerProtocol {
-	case types.DataServerProtocolTCP, types.DataServerProtocolTCPNBD:
+	case types.DataServerProtocolTCP:
 		return net.Dial(string(dataServerProtocol), address)
-	case types.DataServerProtocolUNIX, types.DataServerProtocolUNIXNBD:
+	case types.DataServerProtocolUNIX:
 		unixAddr, err := net.ResolveUnixAddr("unix", address)
 		if err != nil {
 			return nil, err

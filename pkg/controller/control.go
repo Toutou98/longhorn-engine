@@ -34,6 +34,7 @@ type Controller struct {
 	iscsiTargetRequestTimeout time.Duration
 	engineReplicaTimeout      time.Duration
 	DataServerProtocol        types.DataServerProtocol
+	nbdEnabled                bool
 
 	isExpanding             bool
 	revisionCounterDisabled bool
@@ -67,7 +68,7 @@ const (
 )
 
 func NewController(name string, factory types.BackendFactory, frontend types.Frontend, isUpgrade, disableRevCounter, salvageRequested, unmapMarkSnapChainRemoved bool,
-	iscsiTargetRequestTimeout, engineReplicaTimeout time.Duration, dataServerProtocol types.DataServerProtocol, fileSyncHTTPClientTimeout int) *Controller {
+	iscsiTargetRequestTimeout, engineReplicaTimeout time.Duration, dataServerProtocol types.DataServerProtocol, fileSyncHTTPClientTimeout int, nbdEnabled bool) *Controller {
 	c := &Controller{
 		factory:       factory,
 		VolumeName:    name,
@@ -85,6 +86,7 @@ func NewController(name string, factory types.BackendFactory, frontend types.Fro
 		DataServerProtocol:        dataServerProtocol,
 
 		fileSyncHTTPClientTimeout: fileSyncHTTPClientTimeout,
+		nbdEnabled:                nbdEnabled,
 	}
 	c.reset()
 	c.metricsStart()
@@ -164,7 +166,7 @@ func (c *Controller) addReplica(address string, snapshotRequired bool, mode type
 		return err
 	}
 
-	newBackend, err := c.factory.Create(c.VolumeName, address, c.DataServerProtocol, c.engineReplicaTimeout)
+	newBackend, err := c.factory.Create(c.VolumeName, address, c.DataServerProtocol, c.engineReplicaTimeout, c.nbdEnabled)
 	if err != nil {
 		return err
 	}
@@ -728,7 +730,7 @@ func (c *Controller) Start(volumeSize, volumeCurrentSize int64, addresses ...str
 	errorCodes := map[string]codes.Code{}
 	first := true
 	for _, address := range addresses {
-		newBackend, err := c.factory.Create(c.VolumeName, address, c.DataServerProtocol, c.engineReplicaTimeout)
+		newBackend, err := c.factory.Create(c.VolumeName, address, c.DataServerProtocol, c.engineReplicaTimeout, c.nbdEnabled)
 		if err != nil {
 			if strings.Contains(err.Error(), "rpc error: code = Unavailable") {
 				errorCodes[address] = codes.Unavailable

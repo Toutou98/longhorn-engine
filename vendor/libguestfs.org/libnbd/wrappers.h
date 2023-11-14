@@ -3,7 +3,7 @@
  * generator/generator
  * ANY CHANGES YOU MAKE TO THIS FILE WILL BE LOST.
  *
- * Copyright Red Hat
+ * Copyright (C) 2013-2021 Red Hat Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -85,14 +85,6 @@ int _nbd_set_debug_callback_wrapper (struct error *err,
         struct nbd_handle *h, nbd_debug_callback debug_callback);
 int _nbd_clear_debug_callback_wrapper (struct error *err,
         struct nbd_handle *h);
-uint64_t _nbd_stats_bytes_sent_wrapper (struct error *err,
-        struct nbd_handle *h);
-uint64_t _nbd_stats_chunks_sent_wrapper (struct error *err,
-        struct nbd_handle *h);
-uint64_t _nbd_stats_bytes_received_wrapper (struct error *err,
-        struct nbd_handle *h);
-uint64_t _nbd_stats_chunks_received_wrapper (struct error *err,
-        struct nbd_handle *h);
 int _nbd_set_handle_name_wrapper (struct error *err,
         struct nbd_handle *h, const char *handle_name);
 char * _nbd_get_handle_name_wrapper (struct error *err,
@@ -135,21 +127,11 @@ char * _nbd_get_tls_username_wrapper (struct error *err,
         struct nbd_handle *h);
 int _nbd_set_tls_psk_file_wrapper (struct error *err,
         struct nbd_handle *h, const char *filename);
-int _nbd_set_request_extended_headers_wrapper (struct error *err,
-        struct nbd_handle *h, bool request);
-int _nbd_get_request_extended_headers_wrapper (struct error *err,
-        struct nbd_handle *h);
-int _nbd_get_extended_headers_negotiated_wrapper (struct error *err,
-        struct nbd_handle *h);
 int _nbd_set_request_structured_replies_wrapper (struct error *err,
         struct nbd_handle *h, bool request);
 int _nbd_get_request_structured_replies_wrapper (struct error *err,
         struct nbd_handle *h);
 int _nbd_get_structured_replies_negotiated_wrapper (struct error *err,
-        struct nbd_handle *h);
-int _nbd_set_request_meta_context_wrapper (struct error *err,
-        struct nbd_handle *h, bool request);
-int _nbd_get_request_meta_context_wrapper (struct error *err,
         struct nbd_handle *h);
 int _nbd_set_handshake_flags_wrapper (struct error *err,
         struct nbd_handle *h, uint32_t flags);
@@ -171,26 +153,12 @@ int _nbd_opt_go_wrapper (struct error *err,
         struct nbd_handle *h);
 int _nbd_opt_abort_wrapper (struct error *err,
         struct nbd_handle *h);
-int _nbd_opt_starttls_wrapper (struct error *err,
-        struct nbd_handle *h);
-int _nbd_opt_extended_headers_wrapper (struct error *err,
-        struct nbd_handle *h);
-int _nbd_opt_structured_reply_wrapper (struct error *err,
-        struct nbd_handle *h);
 int _nbd_opt_list_wrapper (struct error *err,
         struct nbd_handle *h, nbd_list_callback list_callback);
 int _nbd_opt_info_wrapper (struct error *err,
         struct nbd_handle *h);
 int _nbd_opt_list_meta_context_wrapper (struct error *err,
         struct nbd_handle *h, nbd_context_callback context_callback);
-int _nbd_opt_list_meta_context_queries_wrapper (struct error *err,
-        struct nbd_handle *h, char **queries,
-        nbd_context_callback context_callback);
-int _nbd_opt_set_meta_context_wrapper (struct error *err,
-        struct nbd_handle *h, nbd_context_callback context_callback);
-int _nbd_opt_set_meta_context_queries_wrapper (struct error *err,
-        struct nbd_handle *h, char **queries,
-        nbd_context_callback context_callback);
 int _nbd_add_meta_context_wrapper (struct error *err,
         struct nbd_handle *h, const char *name);
 ssize_t _nbd_get_nr_meta_contexts_wrapper (struct error *err,
@@ -219,10 +187,6 @@ int _nbd_connect_command_wrapper (struct error *err,
         struct nbd_handle *h, char **argv);
 int _nbd_connect_systemd_socket_activation_wrapper (struct error *err,
         struct nbd_handle *h, char **argv);
-int _nbd_set_socket_activation_name_wrapper (struct error *err,
-        struct nbd_handle *h, const char *socket_name);
-char * _nbd_get_socket_activation_name_wrapper (struct error *err,
-        struct nbd_handle *h);
 int _nbd_is_read_only_wrapper (struct error *err,
         struct nbd_handle *h);
 int _nbd_can_flush_wrapper (struct error *err,
@@ -236,8 +200,6 @@ int _nbd_can_trim_wrapper (struct error *err,
 int _nbd_can_zero_wrapper (struct error *err,
         struct nbd_handle *h);
 int _nbd_can_fast_zero_wrapper (struct error *err,
-        struct nbd_handle *h);
-int _nbd_can_block_status_payload_wrapper (struct error *err,
         struct nbd_handle *h);
 int _nbd_can_df_wrapper (struct error *err,
         struct nbd_handle *h);
@@ -278,17 +240,8 @@ int _nbd_zero_wrapper (struct error *err,
 int _nbd_block_status_wrapper (struct error *err,
         struct nbd_handle *h, uint64_t count, uint64_t offset,
         nbd_extent_callback extent_callback, uint32_t flags);
-int _nbd_block_status_64_wrapper (struct error *err,
-        struct nbd_handle *h, uint64_t count, uint64_t offset,
-        nbd_extent64_callback extent64_callback, uint32_t flags);
-int _nbd_block_status_filter_wrapper (struct error *err,
-        struct nbd_handle *h, uint64_t count, uint64_t offset,
-        char **contexts, nbd_extent64_callback extent64_callback,
-        uint32_t flags);
 int _nbd_poll_wrapper (struct error *err,
         struct nbd_handle *h, int timeout);
-int _nbd_poll2_wrapper (struct error *err,
-        struct nbd_handle *h, int fd, int timeout);
 int _nbd_aio_connect_wrapper (struct error *err,
         struct nbd_handle *h, const struct sockaddr *addr,
         socklen_t addrlen);
@@ -310,12 +263,6 @@ int _nbd_aio_opt_go_wrapper (struct error *err,
         struct nbd_handle *h, nbd_completion_callback completion_callback);
 int _nbd_aio_opt_abort_wrapper (struct error *err,
         struct nbd_handle *h);
-int _nbd_aio_opt_starttls_wrapper (struct error *err,
-        struct nbd_handle *h, nbd_completion_callback completion_callback);
-int _nbd_aio_opt_extended_headers_wrapper (struct error *err,
-        struct nbd_handle *h, nbd_completion_callback completion_callback);
-int _nbd_aio_opt_structured_reply_wrapper (struct error *err,
-        struct nbd_handle *h, nbd_completion_callback completion_callback);
 int _nbd_aio_opt_list_wrapper (struct error *err,
         struct nbd_handle *h, nbd_list_callback list_callback,
         nbd_completion_callback completion_callback);
@@ -323,17 +270,6 @@ int _nbd_aio_opt_info_wrapper (struct error *err,
         struct nbd_handle *h, nbd_completion_callback completion_callback);
 int _nbd_aio_opt_list_meta_context_wrapper (struct error *err,
         struct nbd_handle *h, nbd_context_callback context_callback,
-        nbd_completion_callback completion_callback);
-int _nbd_aio_opt_list_meta_context_queries_wrapper (struct error *err,
-        struct nbd_handle *h, char **queries,
-        nbd_context_callback context_callback,
-        nbd_completion_callback completion_callback);
-int _nbd_aio_opt_set_meta_context_wrapper (struct error *err,
-        struct nbd_handle *h, nbd_context_callback context_callback,
-        nbd_completion_callback completion_callback);
-int _nbd_aio_opt_set_meta_context_queries_wrapper (struct error *err,
-        struct nbd_handle *h, char **queries,
-        nbd_context_callback context_callback,
         nbd_completion_callback completion_callback);
 int64_t _nbd_aio_pread_wrapper (struct error *err,
         struct nbd_handle *h, void *buf, size_t count, uint64_t offset,
@@ -363,14 +299,6 @@ int64_t _nbd_aio_zero_wrapper (struct error *err,
 int64_t _nbd_aio_block_status_wrapper (struct error *err,
         struct nbd_handle *h, uint64_t count, uint64_t offset,
         nbd_extent_callback extent_callback,
-        nbd_completion_callback completion_callback, uint32_t flags);
-int64_t _nbd_aio_block_status_64_wrapper (struct error *err,
-        struct nbd_handle *h, uint64_t count, uint64_t offset,
-        nbd_extent64_callback extent64_callback,
-        nbd_completion_callback completion_callback, uint32_t flags);
-int64_t _nbd_aio_block_status_filter_wrapper (struct error *err,
-        struct nbd_handle *h, uint64_t count, uint64_t offset,
-        char **contexts, nbd_extent64_callback extent64_callback,
         nbd_completion_callback completion_callback, uint32_t flags);
 int _nbd_aio_get_fd_wrapper (struct error *err,
         struct nbd_handle *h);
@@ -410,8 +338,6 @@ int _nbd_kill_subprocess_wrapper (struct error *err,
         struct nbd_handle *h, int signum);
 int _nbd_supports_tls_wrapper (struct error *err,
         struct nbd_handle *h);
-int _nbd_supports_vsock_wrapper (struct error *err,
-        struct nbd_handle *h);
 int _nbd_supports_uri_wrapper (struct error *err,
         struct nbd_handle *h);
 char * _nbd_get_uri_wrapper (struct error *err,
@@ -441,14 +367,6 @@ int _nbd_extent_callback_wrapper (void *user_data, const char *metacontext,
                                   uint64_t offset, uint32_t *entries,
                                   size_t nr_entries, int *error);
 void _nbd_extent_callback_free (void *user_data);
-
-extern int extent64_callback ();
-
-int _nbd_extent64_callback_wrapper (void *user_data,
-                                    const char *metacontext,
-                                    uint64_t offset, nbd_extent *entries,
-                                    size_t nr_entries, int *error);
-void _nbd_extent64_callback_free (void *user_data);
 
 extern int list_callback ();
 

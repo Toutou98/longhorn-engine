@@ -306,9 +306,9 @@ func RandomID(randomIDLenth int) string {
 
 func GetAddresses(volumeName, address string, dataServerProtocol types.DataServerProtocol) (string, string, string, int, error) {
 	switch dataServerProtocol {
-	case types.DataServerProtocolTCP:
+	case types.DataServerProtocolTCP, types.DataServerProtocolTCPNBD:
 		return ParseAddresses(address)
-	case types.DataServerProtocolUNIX:
+	case types.DataServerProtocolUNIX, types.DataServerProtocolUNIXNBD:
 		controlAddress, _, syncAddress, syncPort, err := ParseAddresses(address)
 		sockPath := filepath.Join(unixDomainSocketDirectoryInContainer, volumeName+".sock")
 		return controlAddress, sockPath, syncAddress, syncPort, err

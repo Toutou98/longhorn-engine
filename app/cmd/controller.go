@@ -83,6 +83,11 @@ func ControllerCmd() cli.Command {
 				Value:    5,
 				Usage:    "HTTP client timeout for replica file sync server",
 			},
+			cli.BoolFlag{
+				Name:   "nbd-enabled",
+				Hidden: false,
+				Usage:  "Flag to enable NBD data server",
+			},
 		},
 		Action: func(c *cli.Context) {
 			if err := startController(c); err != nil {
@@ -114,7 +119,9 @@ func startController(c *cli.Context) error {
 	dataServerProtocol := c.String("data-server-protocol")
 	fileSyncHTTPClientTimeout := c.Int("file-sync-http-client-timeout")
 	engineInstanceName := c.GlobalString("engine-instance-name")
+	nbdEnabled := c.Bool("nbd-enabled")
 
+	logrus.Infof("nbdEnabled: %t", nbdEnabled)
 	size := c.String("size")
 	if size == "" {
 		return errors.New("size is required")
@@ -163,7 +170,7 @@ func startController(c *cli.Context) error {
 		volumeName, iscsiTargetRequestTimeout, engineReplicaTimeout)
 	control := controller.NewController(volumeName, dynamic.New(factories), frontend, isUpgrade, disableRevCounter, salvageRequested,
 		unmapMarkSnapChainRemoved, iscsiTargetRequestTimeout, engineReplicaTimeout, types.DataServerProtocol(dataServerProtocol),
-		fileSyncHTTPClientTimeout)
+		fileSyncHTTPClientTimeout, nbdEnabled)
 
 	// need to wait for Shutdown() completion
 	control.ShutdownWG.Add(1)
