@@ -329,7 +329,7 @@ func (r *Remote) info() (*types.ReplicaInfo, error) {
 	return replicaClient.GetReplicaInfo(resp.Replica), nil
 }
 
-func (rf *Factory) Create(volumeName, address string, dataServerProtocol types.DataServerProtocol, engineToReplicaTimeout time.Duration, nbdEnabled bool) (types.Backend, error) {
+func (rf *Factory) Create(volumeName, address string, dataServerProtocol types.DataServerProtocol, engineToReplicaTimeout time.Duration, nbdEnabled int) (types.Backend, error) {
 	logrus.Infof("Connecting to remote: %s (%v)", address, dataServerProtocol)
 
 	controlAddress, dataAddress, _, _, err := util.GetAddresses(volumeName, address, dataServerProtocol)
@@ -361,8 +361,8 @@ func (rf *Factory) Create(volumeName, address string, dataServerProtocol types.D
 		return nil, err
 	}
 	//var dataConnClient *dataconn.Client
-	if nbdEnabled {
-		dataConnClientNBD := dataconn.NewNBDClient(conn, engineToReplicaTimeout)
+	if nbdEnabled > 0 {
+		dataConnClientNBD := dataconn.NewNBDClientWrapper(conn, engineToReplicaTimeout, nbdEnabled)
 		r.ReaderWriterUnmapperAt = dataConnClientNBD
 	} else {
 		dataConnClient := dataconn.NewClient(conn, engineToReplicaTimeout)

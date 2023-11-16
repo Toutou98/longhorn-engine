@@ -8,10 +8,62 @@ import (
 	"libguestfs.org/libnbd"
 )
 
+const MAX_NUMBER_OF_CONNECTIONS = 8
+
+type nbdClientWrapper struct {
+	clients []nbdClient
+	next    int
+}
+
 type nbdClient struct {
 	conn      net.Conn
 	opTimeout time.Duration
 	h         *libnbd.Libnbd
+}
+
+func NewNBDClientWrapper(conn net.Conn, engineToReplicaTimeout time.Duration, nbdEnabled int) *nbdClientWrapper {
+	clientList := []nbdClient{}
+	wrapper := &nbdClientWrapper{
+		clients: clientList,
+	}
+
+	client := NewNBDClient(conn, engineToReplicaTimeout)
+	h, err := libnbd.Create()
+	if err != nil {
+		panic(err)
+	}
+
+	client.h = h
+	uri := "nbd://127.0.0.1:9503"
+	err = client.h.ConnectUri(uri)
+	if err != nil {
+		panic(err)
+	}
+	wrapper.clients = append(wrapper.clients, *client)
+
+	multiConnEnabled, err := client.h.CanMultiConn()
+	if err != nil {
+		panic(err)
+	}
+	if multiConnEnabled == true {
+		for i := 1; i < MAX_NUMBER_OF_CONNECTIONS; i++ {
+			client := NewNBDClient(conn, engineToReplicaTimeout)
+			h, err := libnbd.Create()
+			if err != nil {
+				panic(err)
+			}
+
+			client.h = h
+			uri := "nbd://127.0.0.1:9503"
+			err = client.h.ConnectUri(uri)
+			if err != nil {
+				panic(err)
+			}
+			wrapper.clients = append(wrapper.clients, *client)
+		}
+	}
+
+	return wrapper
 }
 
 func NewNBDClient(conn net.Conn, engineToReplicaTimeout time.Duration) *nbdClient {
@@ -19,28 +71,40 @@ func NewNBDClient(conn net.Conn, engineToReplicaTimeout time.Duration) *nbdClien
 		conn:      conn,
 		opTimeout: engineToReplicaTimeout,
 	}
-	go c.handle()
-
 	return c
 }
 
-func (c *nbdClient) WriteAt(buf []byte, offset int64) (int, error) {
-	err := c.h.Pwrite(buf, uint64(offset), nil)
-	if err != nil {
-		return 0, err
+func (w *nbdClientWrapper) WriteAt(buf []byte, offset int64) (int, error) {
+	w.next = (w.next + 1) % MAX_NUMBER_OF_CONNECTIONS
+	index := w.next
+	for i := 0; i < MAX_NUMBER_OF_CONNECTIONS; i++ {
+		err := w.clients[index].h.Pwrite(buf, uint64(offset), nil)
+		if err == nil {
+			break
+		} else {
+			return 0, err
+		}
 	}
+
 	return len(buf), nil
 }
 
-func (c *nbdClient) UnmapAt(length uint32, offset int64) (int, error) {
-	return 0, nil
+func (w *nbdClientWrapper) UnmapAt(length uint32, offset int64) (int, error) {
+	return int(length), nil
 }
 
-func (c *nbdClient) ReadAt(buf []byte, offset int64) (int, error) {
-	err := c.h.Pread(buf, uint64(offset), nil)
-	if err != nil {
-		return 0, err
+func (w *nbdClientWrapper) ReadAt(buf []byte, offset int64) (int, error) {
+	w.next = (w.next + 1) % MAX_NUMBER_OF_CONNECTIONS
+	index := w.next
+	for i := 0; i < MAX_NUMBER_OF_CONNECTIONS; i++ {
+		err := w.clients[index].h.Pread(buf, uint64(offset), nil)
+		if err == nil {
+			break
+		} else {
+			return 0, err
+		}
 	}
+
 	return len(buf), nil
 }
 
@@ -52,26 +116,7 @@ func (c *nbdClient) Ping() error{
 */
 
 func (c *nbdClient) handle() {
-	h, err := libnbd.Create()
-	if err != nil {
-		panic(err)
-	}
-	defer h.Close()
 
-	c.h = h
-	uri := "nbd://127.0.0.1:9503"
-	err = c.h.ConnectUri(uri)
-	if err != nil {
-		panic(err)
-	}
-	//c.printInfo()
-	for {
-		// loop waiting for requests
-		i := 1
-		if i == 2 {
-			break
-		}
-	}
 }
 
 func (c *nbdClient) printInfo() {

@@ -18,7 +18,7 @@ func New(factories map[string]types.BackendFactory) types.BackendFactory {
 	}
 }
 
-func (d *Factory) Create(volumeName, address string, dataServerProtocol types.DataServerProtocol, engineToReplicaTimeout time.Duration, nbdEnabled bool) (types.Backend, error) {
+func (d *Factory) Create(volumeName, address string, dataServerProtocol types.DataServerProtocol, engineToReplicaTimeout time.Duration, nbdEnabled int) (types.Backend, error) {
 	parts := strings.SplitN(address, "://", 2)
 
 	if len(parts) == 2 {

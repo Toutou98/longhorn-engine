@@ -83,10 +83,10 @@ func ControllerCmd() cli.Command {
 				Value:    5,
 				Usage:    "HTTP client timeout for replica file sync server",
 			},
-			cli.BoolFlag{
-				Name:   "nbd-enabled",
-				Hidden: false,
-				Usage:  "Flag to enable NBD data server",
+			cli.IntFlag{
+				Name:  "nbd-enabled",
+				Value: 0,
+				Usage: "Flag to enable NBD data server",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -119,9 +119,8 @@ func startController(c *cli.Context) error {
 	dataServerProtocol := c.String("data-server-protocol")
 	fileSyncHTTPClientTimeout := c.Int("file-sync-http-client-timeout")
 	engineInstanceName := c.GlobalString("engine-instance-name")
-	nbdEnabled := c.Bool("nbd-enabled")
+	nbdEnabled := c.Int("nbd-enabled")
 
-	logrus.Infof("nbdEnabled: %t", nbdEnabled)
 	size := c.String("size")
 	if size == "" {
 		return errors.New("size is required")

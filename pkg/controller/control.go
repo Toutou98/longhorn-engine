@@ -34,7 +34,7 @@ type Controller struct {
 	iscsiTargetRequestTimeout time.Duration
 	engineReplicaTimeout      time.Duration
 	DataServerProtocol        types.DataServerProtocol
-	nbdEnabled                bool
+	nbdEnabled                int
 
 	isExpanding             bool
 	revisionCounterDisabled bool
@@ -68,7 +68,7 @@ const (
 )
 
 func NewController(name string, factory types.BackendFactory, frontend types.Frontend, isUpgrade, disableRevCounter, salvageRequested, unmapMarkSnapChainRemoved bool,
-	iscsiTargetRequestTimeout, engineReplicaTimeout time.Duration, dataServerProtocol types.DataServerProtocol, fileSyncHTTPClientTimeout int, nbdEnabled bool) *Controller {
+	iscsiTargetRequestTimeout, engineReplicaTimeout time.Duration, dataServerProtocol types.DataServerProtocol, fileSyncHTTPClientTimeout int, nbdEnabled int) *Controller {
 	c := &Controller{
 		factory:       factory,
 		VolumeName:    name,

@@ -15,10 +15,10 @@ type DataServer struct {
 	protocol   types.DataServerProtocol
 	address    string
 	s          *replica.Server
-	nbdEnabled bool
+	nbdEnabled int
 }
 
-func NewDataServer(protocol types.DataServerProtocol, address string, s *replica.Server, nbdEnabled bool) *DataServer {
+func NewDataServer(protocol types.DataServerProtocol, address string, s *replica.Server, nbdEnabled int) *DataServer {
 	return &DataServer{
 		protocol:   protocol,
 		address:    address,
@@ -58,7 +58,7 @@ func (s *DataServer) listenAndServeTCP() error {
 
 		logrus.Infof("New tcp connection from: %v", conn.RemoteAddr())
 
-		if s.nbdEnabled {
+		if s.nbdEnabled > 0 {
 			go func() {
 				nbdServer := dataconn.NewNBDServer(conn, s.s)
 				nbdServer.Handle()

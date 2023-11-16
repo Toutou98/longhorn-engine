@@ -73,10 +73,10 @@ func ReplicaCmd() cli.Command {
 				Value: "",
 				Usage: "Name of the replica instance (for validation purposes)",
 			},
-			cli.BoolFlag{
-				Name:   "nbd-enabled",
-				Hidden: false,
-				Usage:  "Flag to enable NBD data server",
+			cli.IntFlag{
+				Name:  "nbd-enabled",
+				Value: 0,
+				Usage: "Flag to enable NBD data server",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -120,7 +120,7 @@ func startReplica(c *cli.Context) error {
 	volumeName := c.GlobalString("volume-name")
 	replicaInstanceName := c.String("replica-instance-name")
 	dataServerProtocol := c.String("data-server-protocol")
-	nbdEnabled := c.Bool("nbd-enabled")
+	nbdEnabled := c.Int("nbd-enabled")
 
 	controlAddress, dataAddress, syncAddress, syncPort, err :=
 		util.GetAddresses(volumeName, address, types.DataServerProtocol(dataServerProtocol))
